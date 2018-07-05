@@ -16,6 +16,7 @@ import { isCodecType } from '../utils/codecs';
 // https://regex101.com is your friend
 const MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g;
 const MASTER_PLAYLIST_MEDIA_REGEX = /#EXT-X-MEDIA:(.*)/g;
+const MASTER_PLAYLIST_SESSION_DATA_REGEX = /#EXT-X-SESSION-DATA:(.*)/g;
 
 const LEVEL_PLAYLIST_REGEX_FAST = new RegExp([
   /#EXTINF:\s*(\d*(?:\.\d+)?)(?:,(.*)\s+)?/.source, // duration (#EXTINF:<duration>,<title>), group 1 => duration, group 2 => title
@@ -66,6 +67,7 @@ export default class M3U8Parser {
   static parseMasterPlaylist (string, baseurl) {
     let levels = [], result;
     MASTER_PLAYLIST_REGEX.lastIndex = 0;
+    MASTER_PLAYLIST_SESSION_DATA_REGEX.lastIndex = 0;
 
     function setCodecs (codecs, level) {
       ['video', 'audio'].forEach((type) => {
@@ -82,6 +84,19 @@ export default class M3U8Parser {
       });
 
       level.unknownCodecs = codecs;
+    }
+
+    let sessionData = {};
+
+    while ((result = MASTER_PLAYLIST_SESSION_DATA_REGEX.exec(string)) != null) {
+      let sessionAttrs = new AttrList(result[1]);
+      if (sessionAttrs['DATA-ID']) {
+        if (!sessionData[sessionAttrs['DATA-ID']]) {
+          sessionData[sessionAttrs['DATA-ID']] = [sessionAttrs];
+        } else {
+          sessionData[sessionAttrs['DATA-ID']].push(sessionAttrs);
+        }
+      }
     }
 
     while ((result = MASTER_PLAYLIST_REGEX.exec(string)) != null) {
@@ -103,6 +118,8 @@ export default class M3U8Parser {
       if (level.videoCodec && level.videoCodec.indexOf('avc1') !== -1) {
         level.videoCodec = M3U8Parser.convertAVC1ToAVCOTI(level.videoCodec);
       }
+
+      level.sessionData = sessionData;
 
       levels.push(level);
     }
