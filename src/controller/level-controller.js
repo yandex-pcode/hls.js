@@ -142,6 +142,7 @@ export default class LevelController extends EventHandler {
           break;
         }
       }
+      this._sessionData = data.sessionData;
       this.hls.trigger(Event.MANIFEST_PARSED, {
         levels,
         audioTracks,
@@ -149,7 +150,8 @@ export default class LevelController extends EventHandler {
         stats: data.stats,
         audio: audioCodecFound,
         video: videoCodecFound,
-        altAudio: audioTracks.length > 0 && videoCodecFound
+        altAudio: audioTracks.length > 0 && videoCodecFound,
+        sessionData: this._sessionData
       });
     } else {
       this.hls.trigger(Event.ERROR, {
@@ -168,6 +170,10 @@ export default class LevelController extends EventHandler {
 
   get level () {
     return this.currentLevelIndex;
+  }
+
+  get sessionData () {
+    return this._sessionData;
   }
 
   set level (newLevel) {
