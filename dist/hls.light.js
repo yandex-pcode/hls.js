@@ -6346,6 +6346,7 @@ function m3u8_parser__classCallCheck(instance, Constructor) { if (!(instance ins
 // https://regex101.com is your friend
 var MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g;
 var MASTER_PLAYLIST_MEDIA_REGEX = /#EXT-X-MEDIA:(.*)/g;
+var MASTER_PLAYLIST_SESSION_DATA_REGEX = /#EXT-X-SESSION-DATA:(.*)/g;
 
 var LEVEL_PLAYLIST_REGEX_FAST = new RegExp([/#EXTINF:\s*(\d*(?:\.\d+)?)(?:,(.*)\s+)?/.source, // duration (#EXTINF:<duration>,<title>), group 1 => duration, group 2 => title
 /|(?!#)(\S+)/.source, // segment URI, group 3 => the URI (note newline is not eaten)
@@ -6483,6 +6484,21 @@ var m3u8_parser_M3U8Parser = function () {
       }
     }
     return medias;
+  };
+
+  M3U8Parser.parseMasterPlaylistSessionData = function parseMasterPlaylistSessionData(string) {
+    var result = void 0;
+    var sessionData = {};
+    MASTER_PLAYLIST_SESSION_DATA_REGEX.lastIndex = 0;
+
+    while ((result = MASTER_PLAYLIST_SESSION_DATA_REGEX.exec(string)) != null) {
+      var sessionAttrs = new attr_list(result[1]);
+      if (sessionAttrs['DATA-ID']) {
+        sessionData[sessionAttrs['DATA-ID']] = sessionAttrs;
+      }
+    }
+
+    return sessionData;
   };
 
   M3U8Parser.parseLevelPlaylist = function parseLevelPlaylist(string, baseurl, id, type, levelUrlId) {
@@ -7038,7 +7054,8 @@ var playlist_loader_PlaylistLoader = function (_EventHandler) {
       subtitles: subtitles,
       url: url,
       stats: stats,
-      networkDetails: networkDetails
+      networkDetails: networkDetails,
+      sessionData: m3u8_parser.parseMasterPlaylistSessionData(string)
     });
   };
 
@@ -7076,7 +7093,8 @@ var playlist_loader_PlaylistLoader = function (_EventHandler) {
         audioTracks: [],
         url: url,
         stats: stats,
-        networkDetails: networkDetails
+        networkDetails: networkDetails,
+        sessionData: {}
       });
     }
 
@@ -8460,14 +8478,14 @@ function alignDiscontinuities(lastFrag, lastLevel, details) {
     }
   }
   // try to align using programDateTime attribute (if available)
-  if (details.PTSKnown === false && lastLevel && lastLevel.details && lastLevel.details.fragments && lastLevel.details.fragments.length) {
+  if (details.PTSKnown === false && lastLevel && lastLevel.details && lastLevel.details.fragments && lastLevel.details.fragments.length && details.fragments && details.fragments.length) {
     // if last level sliding is 1000 and its first frag PROGRAM-DATE-TIME is 2017-08-20 1:10:00 AM
     // and if new details first frag PROGRAM DATE-TIME is 2017-08-20 1:10:08 AM
     // then we can deduce that playlist B sliding is 1000+8 = 1008s
     var lastPDT = lastLevel.details.programDateTime;
     var newPDT = details.programDateTime;
     // date diff is in ms. frag.start is in seconds
-    var sliding = (newPDT - lastPDT) / 1000 + lastLevel.details.fragments[0].start;
+    var sliding = (newPDT - lastPDT) / 1000 + (lastLevel.details.fragments[0].start - details.fragments[0].start);
     if (!isNaN(sliding)) {
       logger["b" /* logger */].log('adjusting PTS using programDateTime delta, sliding:' + sliding.toFixed(3));
       adjustPts(sliding, details);
@@ -10571,6 +10589,7 @@ var level_controller_LevelController = function (_EventHandler) {
           break;
         }
       }
+      this._sessionData = data.sessionData;
       this.hls.trigger(events["a" /* default */].MANIFEST_PARSED, {
         levels: levels,
         audioTracks: audioTracks,
@@ -10578,7 +10597,8 @@ var level_controller_LevelController = function (_EventHandler) {
         stats: data.stats,
         audio: audioCodecFound,
         video: videoCodecFound,
-        altAudio: audioTracks.length > 0 && videoCodecFound
+        altAudio: audioTracks.length > 0 && videoCodecFound,
+        sessionData: this._sessionData
       });
     } else {
       this.hls.trigger(events["a" /* default */].ERROR, {
@@ -10858,6 +10878,11 @@ var level_controller_LevelController = function (_EventHandler) {
           this.setLevelInternal(newLevel);
         }
       }
+    }
+  }, {
+    key: 'sessionData',
+    get: function get() {
+      return this._sessionData;
     }
   }, {
     key: 'manualLevel',
@@ -11397,8 +11422,13 @@ var abr_controller_AbrController = function (_EventHandler) {
 
   AbrController.prototype._findBestLevel = function _findBestLevel(currentLevel, currentFragDuration, currentBw, minAutoLevel, maxAutoLevel, maxFetchDuration, bwFactor, bwUpFactor, levels) {
     for (var i = maxAutoLevel; i >= minAutoLevel; i--) {
-      var levelInfo = levels[i],
-          levelDetails = levelInfo.details,
+      var levelInfo = levels[i];
+
+      if (!levelInfo) {
+        continue;
+      }
+
+      var levelDetails = levelInfo.details,
           avgDuration = levelDetails ? levelDetails.totalduration / levelDetails.fragments.length : currentFragDuration,
           live = levelDetails ? levelDetails.live : false,
           adjustedbw = void 0;
@@ -12801,7 +12831,7 @@ var hls_Hls = function () {
      * @type {string}
      */
     get: function get() {
-      return "0.10.0";
+      return "0.10.1";
     }
   }, {
     key: 'Events',
@@ -13490,6 +13520,17 @@ var hls_Hls = function () {
       if (subtitleTrackController) {
         subtitleTrackController.subtitleDisplay = value;
       }
+    }
+
+    /**
+     * Parsed EXT-X-SESSION-DATA value of master playlist
+     * @return {Object.<string, AttrList>}
+     */
+
+  }, {
+    key: 'sessionData',
+    get: function get() {
+      return this.levelController.sessionData;
     }
   }]);
 
