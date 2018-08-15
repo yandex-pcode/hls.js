@@ -8861,7 +8861,7 @@ function findFragmentByPTS(fragPrevious, fragments) {
   if (fragNext && !fragmentWithinToleranceTest(bufferEnd, maxFragLookUpTolerance, fragNext)) {
     return fragNext;
   }
-  return binary_search.search(fragments, fragmentWithinToleranceTest.bind(null, bufferEnd, maxFragLookUpTolerance));
+  return binary_search.search(fragments, fragmentWithinToleranceTest.bind(null, bufferEnd, maxFragLookUpTolerance)) || fragNext;
 }
 
 /**
