@@ -11242,7 +11242,11 @@ var id3_track_controller_ID3TrackController = function (_EventHandler) {
           if (!id3["a" /* default */].isTimeStampFrame(frame)) {
             var cue = new Cue(startTime, endTime, '');
             cue.value = frame;
-            this.id3Track.addCue(cue);
+            try {
+              this.id3Track.addCue(cue);
+            } catch (e) {
+              // noop
+            }
           }
         }
       }
