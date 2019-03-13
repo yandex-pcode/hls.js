@@ -9160,7 +9160,7 @@ var Hls = /** @class */ (function (_super) {
          * @type {string}
          */
         get: function () {
-            return "0.12.3-v0-12-2-yandex-pre-SNAPSHOT-8a50d9d";
+            return "0.12.3-v0-12-2-yandex-pre-SNAPSHOT-6e1a67c";
         },
         enumerable: true,
         configurable: true
