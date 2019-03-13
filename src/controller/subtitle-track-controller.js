@@ -36,6 +36,8 @@ class SubtitleTrackController extends EventHandler {
      * @member {boolean} subtitleDisplay Enable/disable subtitle display rendering
      */
     this.subtitleDisplay = true;
+
+    this.queuedDefaultTrack = -1;
   }
 
   _onTextTracksChanged () {
@@ -71,7 +73,7 @@ class SubtitleTrackController extends EventHandler {
       return;
     }
 
-    if (this.queuedDefaultTrack) {
+    if (this.queuedDefaultTrack >= 0) {
       this.subtitleTrack = this.queuedDefaultTrack;
       delete this.queuedDefaultTrack;
     }
