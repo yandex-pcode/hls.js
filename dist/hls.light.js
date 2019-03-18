@@ -9160,7 +9160,7 @@ var Hls = /** @class */ (function (_super) {
          * @type {string}
          */
         get: function () {
-            return "0.12.3-v0-12-2-yandex-pre-SNAPSHOT-6e1a67c";
+            return "0.12.2-88dcb36";
         },
         enumerable: true,
         configurable: true
@@ -13096,9 +13096,11 @@ exports.findDiscontinuousReferenceFrag = findDiscontinuousReferenceFrag;
 function adjustPts(sliding, details) {
     details.fragments.forEach(function (frag) {
         if (frag) {
-            var start = frag.start + sliding;
-            frag.start = frag.startPTS = start;
-            frag.endPTS = start + frag.duration;
+            frag.start += sliding;
+            if (Number.isFinite(frag.startPTS)) {
+                frag.startPTS = frag.start;
+                frag.endPTS = frag.start + frag.duration;
+            }
         }
     });
     details.PTSKnown = true;
