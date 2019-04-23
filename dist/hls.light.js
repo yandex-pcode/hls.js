@@ -3249,6 +3249,10 @@ var ID3TrackController = /** @class */ (function (_super) {
         return this.media.addTextTrack('metadata', 'id3');
     };
     ID3TrackController.prototype.onFragParsingMetadata = function (data) {
+        if (!this.media) {
+            // tmp fix for https://github.com/video-dev/hls.js/issues/2232
+            return;
+        }
         var fragment = data.frag;
         var samples = data.samples;
         // create track dynamically
@@ -9160,7 +9164,7 @@ var Hls = /** @class */ (function (_super) {
          * @type {string}
          */
         get: function () {
-            return "0.12.3-v0-12-2-yandex-pre-SNAPSHOT-6e1a67c";
+            return "0.12.3-v0-12-2-yandex-pre-SNAPSHOT-334ac33";
         },
         enumerable: true,
         configurable: true
