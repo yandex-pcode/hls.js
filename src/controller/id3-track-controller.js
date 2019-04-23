@@ -50,6 +50,10 @@ class ID3TrackController extends EventHandler {
   }
 
   onFragParsingMetadata (data) {
+    if (!this.media) {
+      // tmp fix for https://github.com/video-dev/hls.js/issues/2232
+      return;
+    }
     const fragment = data.frag;
     const samples = data.samples;
 
