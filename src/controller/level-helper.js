@@ -94,7 +94,17 @@ export function updateFragPTSDTS (details, frag, startPTS, endPTS, startDTS, end
   // this will happen if playlist has been refreshed between frag loading and call to updateFragPTSDTS()
   // if we don't update frag, we won't be able to propagate PTS info on the playlist
   // resulting in invalid sliding computation
+  if (fragments[fragIdx].start !== frag.start && frag.sn === fragments[fragIdx].sn) {
+    frag.start = frag.startPTS = fragments[fragIdx].start;
+    frag.maxStartPTS = fragments[fragIdx].maxStartPTS;
+    frag.endPTS = fragments[fragIdx].endPTS;
+    frag.startDTS = fragments[fragIdx].startDTS;
+    frag.endDTS = fragments[fragIdx].endDTS;
+    frag.duration = fragments[fragIdx].duration;
+  }
+
   fragments[fragIdx] = frag;
+
   // adjust fragment PTS/duration from seqnum-1 to frag 0
   for (i = fragIdx; i > 0; i--) {
     updatePTS(fragments, i, i - 1);
