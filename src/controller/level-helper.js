@@ -81,20 +81,21 @@ export function updateFragPTSDTS (details, frag, startPTS, endPTS, startDTS, end
   frag.duration = endPTS - startPTS;
 
   const sn = frag.sn;
-  // exit if sn out of range
-  if (!details || sn < details.startSN || sn > details.endSN) {
-    return 0;
-  }
-
   let fragIdx, fragments, i;
   fragIdx = sn - details.startSN;
   fragments = details.fragments;
+  // exit if sn out of range
+  if (!details || sn < details.startSN || sn > details.endSN || fragIdx < 0 || frag.sn !== fragments[fragIdx].sn) {
+    logger.warn('updateFragPTSDTS: drop frag [' + sn + ']');
+    return 0;
+  }
   // update frag reference in fragments array
   // rationale is that fragments array might not contain this frag object.
   // this will happen if playlist has been refreshed between frag loading and call to updateFragPTSDTS()
   // if we don't update frag, we won't be able to propagate PTS info on the playlist
   // resulting in invalid sliding computation
-  if (fragIdx > 0 && fragments[fragIdx].start !== frag.start && frag.sn === fragments[fragIdx].sn) {
+  if (fragments[fragIdx].start !== frag.start) {
+    logger.warn('updateFragPTSDTS: correct frag [' + sn + '], pts from [' + frag.start + '] to [' + fragments[fragIdx].start + ']');
     // if frag is from another playlist, copy start position for it
     // to drop invalidFragDuration due to different playlist sliding
     frag.start = frag.startPTS = fragments[fragIdx].start;
@@ -103,10 +104,6 @@ export function updateFragPTSDTS (details, frag, startPTS, endPTS, startDTS, end
     frag.startDTS = fragments[fragIdx].startDTS;
     frag.endDTS = fragments[fragIdx].endDTS;
     frag.duration = fragments[fragIdx].duration;
-  } else {
-    // this parsed frag is too new and it's missing in playlist
-    // we can just drop it
-    return 0;
   }
 
   fragments[fragIdx] = frag;
