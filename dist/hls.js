@@ -5552,13 +5552,20 @@ function updateFragPTSDTS(details, frag, startPTS, endPTS, startDTS, endDTS) {
     // this will happen if playlist has been refreshed between frag loading and call to updateFragPTSDTS()
     // if we don't update frag, we won't be able to propagate PTS info on the playlist
     // resulting in invalid sliding computation
-    if (fragments[fragIdx].start !== frag.start && frag.sn === fragments[fragIdx].sn) {
+    if (fragIdx > 0 && fragments[fragIdx].start !== frag.start && frag.sn === fragments[fragIdx].sn) {
+        // if frag is from another playlist, copy start position for it
+        // to drop invalidFragDuration due to different playlist sliding
         frag.start = frag.startPTS = fragments[fragIdx].start;
         frag.maxStartPTS = fragments[fragIdx].maxStartPTS;
         frag.endPTS = fragments[fragIdx].endPTS;
         frag.startDTS = fragments[fragIdx].startDTS;
         frag.endDTS = fragments[fragIdx].endDTS;
         frag.duration = fragments[fragIdx].duration;
+    }
+    else {
+        // this parsed frag is too new and it's missing in playlist
+        // we can just drop it
+        return 0;
     }
     fragments[fragIdx] = frag;
     // adjust fragment PTS/duration from seqnum-1 to frag 0
@@ -11663,7 +11670,7 @@ var Hls = /** @class */ (function (_super) {
          * @type {string}
          */
         get: function () {
-            return "0.12.3-v0-12-2-yandex-pre-invalid-fix-SNAPSHOT-1c3ac44";
+            return "0.12.3-0-12-2-yandex-pre-invalid-fix-1-SNAPSHOT-55e5f83";
         },
         enumerable: true,
         configurable: true
