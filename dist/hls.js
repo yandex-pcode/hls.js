@@ -5540,19 +5540,21 @@ function updateFragPTSDTS(details, frag, startPTS, endPTS, startDTS, endDTS) {
     frag.endDTS = endDTS;
     frag.duration = endPTS - startPTS;
     var sn = frag.sn;
-    // exit if sn out of range
-    if (!details || sn < details.startSN || sn > details.endSN) {
-        return 0;
-    }
     var fragIdx, fragments, i;
     fragIdx = sn - details.startSN;
     fragments = details.fragments;
+    // exit if sn out of range
+    if (!details || sn < details.startSN || sn > details.endSN || fragIdx < 0 || frag.sn !== fragments[fragIdx].sn) {
+        logger_1.logger.warn('updateFragPTSDTS: drop frag [' + sn + ']');
+        return 0;
+    }
     // update frag reference in fragments array
     // rationale is that fragments array might not contain this frag object.
     // this will happen if playlist has been refreshed between frag loading and call to updateFragPTSDTS()
     // if we don't update frag, we won't be able to propagate PTS info on the playlist
     // resulting in invalid sliding computation
-    if (fragIdx > 0 && fragments[fragIdx].start !== frag.start && frag.sn === fragments[fragIdx].sn) {
+    if (fragments[fragIdx].start !== frag.start) {
+        logger_1.logger.warn('updateFragPTSDTS: correct frag [' + sn + '], pts from [' + frag.start + '] to [' + fragments[fragIdx].start + ']');
         // if frag is from another playlist, copy start position for it
         // to drop invalidFragDuration due to different playlist sliding
         frag.start = frag.startPTS = fragments[fragIdx].start;
@@ -5561,11 +5563,6 @@ function updateFragPTSDTS(details, frag, startPTS, endPTS, startDTS, endDTS) {
         frag.startDTS = fragments[fragIdx].startDTS;
         frag.endDTS = fragments[fragIdx].endDTS;
         frag.duration = fragments[fragIdx].duration;
-    }
-    else {
-        // this parsed frag is too new and it's missing in playlist
-        // we can just drop it
-        return 0;
     }
     fragments[fragIdx] = frag;
     // adjust fragment PTS/duration from seqnum-1 to frag 0
@@ -11670,7 +11667,7 @@ var Hls = /** @class */ (function (_super) {
          * @type {string}
          */
         get: function () {
-            return "0.12.3-0-12-2-yandex-pre-invalid-fix-1-SNAPSHOT-55e5f83";
+            return "0.12.3-heads-0-12-2-yandex-pre-invalid-fix-2-SNAPSHOT-b257f34";
         },
         enumerable: true,
         configurable: true
