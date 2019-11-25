@@ -4765,7 +4765,9 @@ var StreamController = /** @class */ (function (_super) {
             fragCurrent &&
             fragLoaded.type === 'main' &&
             fragLoaded.level === fragCurrent.level &&
-            fragLoaded.sn === fragCurrent.sn) {
+            fragLoaded.sn === fragCurrent.sn &&
+            levels[fragCurrent.level] &&
+            levels[fragCurrent.level].details) {
             var stats = data.stats;
             var currentLevel = levels[fragCurrent.level];
             var details = currentLevel.details;
@@ -9164,7 +9166,7 @@ var Hls = /** @class */ (function (_super) {
          * @type {string}
          */
         get: function () {
-            return "0.12.3-v0-12-2-yandex-pre-SNAPSHOT-334ac33";
+            return "0.12.3-v0-12-2-yandex-pre-onFragLoad-null-ref-SNAPSHOT-e500cff";
         },
         enumerable: true,
         configurable: true
