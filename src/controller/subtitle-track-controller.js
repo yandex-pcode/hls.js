@@ -4,6 +4,20 @@ import { logger } from '../utils/logger';
 import { computeReloadInterval } from './level-helper';
 import { clearCurrentCues } from '../utils/texttrack-utils';
 
+function filterUsedSubtitleTracks (manifestTrackList, textTrackList) {
+  let tracksNames = {};
+  for (let i = 0; i < manifestTrackList.length; i++) {
+    tracksNames[manifestTrackList[i].name] = true;
+  }
+  let tracks = [];
+  for (let i = 0; i < textTrackList.length; i++) {
+    if (textTrackList[i].kind === 'subtitles' && tracksNames[textTrackList[i].label]) {
+      tracks.push(textTrackList[i]);
+    }
+  }
+  return tracks;
+}
+
 class SubtitleTrackController extends EventHandler {
   constructor (hls) {
     super(hls,
@@ -39,7 +53,7 @@ class SubtitleTrackController extends EventHandler {
       return;
     }
 
-    if (Number.isFinite(this.queuedDefaultTrack)) {
+    if (Number.isFinite(this.queuedDefaultTrack >= 0)) {
       this.subtitleTrack = this.queuedDefaultTrack;
       this.queuedDefaultTrack = null;
     }
@@ -178,12 +192,12 @@ class SubtitleTrackController extends EventHandler {
    * @private
    */
   _toggleTrackModes (newId) {
-    const { media, subtitleDisplay, trackId } = this;
+    const { media, subtitleDisplay, trackId, tracks } = this;
     if (!media) {
       return;
     }
 
-    const textTracks = filterSubtitleTracks(media.textTracks);
+    const textTracks = filterUsedSubtitleTracks(tracks, media.textTracks);
     if (newId === -1) {
       [].slice.call(textTracks).forEach(track => {
         track.mode = 'disabled';
@@ -225,7 +239,7 @@ class SubtitleTrackController extends EventHandler {
     }
 
     let trackId = -1;
-    let tracks = filterSubtitleTracks(this.media.textTracks);
+    let tracks = filterUsedSubtitleTracks(this.tracks, this.media.textTracks);
     for (let id = 0; id < tracks.length; id++) {
       if (tracks[id].mode === 'hidden') {
         // Do not break in case there is a following track with showing.
@@ -239,18 +253,6 @@ class SubtitleTrackController extends EventHandler {
     // Setting current subtitleTrack will invoke code.
     this.subtitleTrack = trackId;
   }
-}
-
-function filterSubtitleTracks (textTrackList) {
-  let tracks = [];
-  for (let i = 0; i < textTrackList.length; i++) {
-    const track = textTrackList[i];
-    // Edge adds a track without a label; we don't want to use it
-    if (track.kind === 'subtitles' && track.label) {
-      tracks.push(textTrackList[i]);
-    }
-  }
-  return tracks;
 }
 
 export default SubtitleTrackController;

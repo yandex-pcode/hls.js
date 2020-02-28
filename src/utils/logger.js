@@ -30,17 +30,22 @@ function formatMsg (type, msg) {
 const global = getSelfScope();
 
 function consolePrintFn (type) {
-  const func = global.console[type];
-  if (func) {
-    return function (...args) {
-      if (args[0]) {
-        args[0] = formatMsg(type, args[0]);
-      }
-
-      func.apply(global.console, args);
-    };
+  if (!global.console) {
+    return noop;
   }
-  return noop;
+
+  const func = global.console[type];
+  if (!func) {
+    return noop;
+  }
+
+  return function (...args) {
+    if (args[0]) {
+      args[0] = formatMsg(type, args[0]);
+    }
+
+    func.apply(global.console, args);
+  };
 }
 
 function exportLoggerFunctions (debugConfig, ...functions) {

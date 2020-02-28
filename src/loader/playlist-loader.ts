@@ -330,7 +330,8 @@ class PlaylistLoader extends EventHandler {
       subtitles,
       url,
       stats,
-      networkDetails
+      networkDetails,
+      sessionData: M3U8Parser.parseMasterPlaylistSessionData(string)
     });
   }
 
@@ -367,7 +368,8 @@ class PlaylistLoader extends EventHandler {
         audioTracks: [],
         url,
         stats,
-        networkDetails
+        networkDetails,
+        sessionData: {}
       });
     }
 

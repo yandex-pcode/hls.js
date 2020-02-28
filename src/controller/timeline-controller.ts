@@ -148,6 +148,7 @@ class TimelineController extends EventHandler {
   onMediaAttaching (data: { media: HTMLMediaElement }) {
     this.media = data.media;
     this._cleanTracks();
+    this.createTextTracks();
   }
 
   onMediaDetaching () {
@@ -191,14 +192,26 @@ class TimelineController extends EventHandler {
     this.initPTS = [];
     this.cueRanges = [];
 
-    if (this.config.enableWebVTT) {
-      this.tracks = data.subtitles || [];
-      const inUseTracks = this.media ? this.media.textTracks : [];
+    if (!this.config.enableWebVTT) {
+      return;
+    }
+    this.tracks = data.subtitles || [];
 
-      this.tracks.forEach((track, index) => {
-        let textTrack;
-        if (index < inUseTracks.length) {
-          let inUseTrack: TextTrack | null = null;
+    if (this.media) {
+      this.createTextTracks();
+    }
+  }
+
+  createTextTracks () {
+    if (this.textTracks.length > 0) {
+      return;
+    }
+    const inUseTracks = this.media ? this.media.textTracks : [];
+
+    this.tracks.forEach((track, index) => {
+      let textTrack;
+      if (index < inUseTracks.length) {
+        let inUseTrack: TextTrack | null = null;
 
           for (let i = 0; i < inUseTracks.length; i++) {
             if (canReuseVttTextTrack(inUseTracks[i], track)) {
@@ -216,15 +229,18 @@ class TimelineController extends EventHandler {
           textTrack = this.createTextTrack('subtitles', track.name, track.lang);
         }
 
-        if (track.default) {
-          textTrack.mode = this.hls.subtitleDisplay ? 'showing' : 'hidden';
-        } else {
-          textTrack.mode = 'disabled';
-        }
+      if (!textTrack) {
+        return;
+      }
 
-        this.textTracks.push(textTrack);
-      });
-    }
+      if (track.default) {
+        textTrack.mode = this.hls.subtitleDisplay ? 'showing' : 'hidden';
+      } else {
+        textTrack.mode = 'disabled';
+      }
+
+      this.textTracks.push(textTrack);
+    });
   }
 
   onFragLoaded (data: { frag: Fragment, payload: any }) {
@@ -367,7 +383,7 @@ class TimelineController extends EventHandler {
 }
 
 function canReuseVttTextTrack (inUseTrack, manifestTrack): boolean {
-  return inUseTrack && inUseTrack.label === manifestTrack.name && !(inUseTrack.textTrack1 || inUseTrack.textTrack2);
+  return inUseTrack && inUseTrack.label === manifestTrack.name && inUseTrack.kind === 'subtitles' && !(inUseTrack.textTrack1 || inUseTrack.textTrack2);
 }
 
 function intersection (x1: number, x2: number, y1: number, y2: number): number {

@@ -836,7 +836,10 @@ class StreamController extends BaseStreamController {
         fragCurrent &&
         fragLoaded.type === 'main' &&
         fragLoaded.level === fragCurrent.level &&
-        fragLoaded.sn === fragCurrent.sn) {
+        fragLoaded.sn === fragCurrent.sn &&
+        levels[fragCurrent.level] &&
+        levels[fragCurrent.level].details
+    ) {
       const stats = data.stats;
       const currentLevel = levels[fragCurrent.level];
       const details = currentLevel.details;

@@ -91,7 +91,11 @@ class ID3TrackController extends EventHandler {
           if (!ID3.isTimeStampFrame(frame)) {
             const cue = new Cue(startTime, endTime, '');
             cue.value = frame;
-            this.id3Track.addCue(cue);
+            try {
+              this.id3Track.addCue(cue);
+            } catch (e) {
+              // noop
+            }
           }
         }
       }
