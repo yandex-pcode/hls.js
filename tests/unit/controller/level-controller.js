@@ -98,6 +98,7 @@ describe('LevelController', function () {
         audioTracks: [],
         firstLevel: 0,
         levels: data.levels,
+        sessionData: undefined,
         stats: {},
         video: false
       });
