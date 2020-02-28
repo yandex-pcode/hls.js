@@ -19061,7 +19061,7 @@ function (_EventHandler) {
       this.queuedDefaultTrack = this.subtitleTrack;
     }
 
-    var textTracks = filterUsedSubtitleTracks(this.media.textTracks); // Clear loaded cues on media detachment from tracks
+    var textTracks = filterUsedSubtitleTracks(this.tracks, this.media.textTracks); // Clear loaded cues on media detachment from tracks
 
     textTracks.forEach(function (track) {
       clearCurrentCues(track);

@@ -85,7 +85,7 @@ class SubtitleTrackController extends EventHandler {
       this.queuedDefaultTrack = this.subtitleTrack;
     }
 
-    const textTracks = filterUsedSubtitleTracks(this.media.textTracks);
+    const textTracks = filterUsedSubtitleTracks(this.tracks, this.media.textTracks);
     // Clear loaded cues on media detachment from tracks
     textTracks.forEach((track) => {
       clearCurrentCues(track);
