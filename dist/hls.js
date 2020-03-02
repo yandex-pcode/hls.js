@@ -18955,7 +18955,6 @@ function intersection(x1, x2, y1, y2) {
 
 
 
-
 function subtitle_track_controller_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function subtitle_track_controller_createClass(Constructor, protoProps, staticProps) { if (protoProps) subtitle_track_controller_defineProperties(Constructor.prototype, protoProps); if (staticProps) subtitle_track_controller_defineProperties(Constructor, staticProps); return Constructor; }
@@ -19029,7 +19028,7 @@ function (_EventHandler) {
       return;
     }
 
-    if (Object(number_isFinite["isFiniteNumber"])(this.queuedDefaultTrack >= 0)) {
+    if (this.queuedDefaultTrack >= 0) {
       this.subtitleTrack = this.queuedDefaultTrack;
       this.queuedDefaultTrack = null;
     }
@@ -19174,7 +19173,6 @@ function (_EventHandler) {
   _proto._toggleTrackModes = function _toggleTrackModes(newId) {
     var media = this.media,
         subtitleDisplay = this.subtitleDisplay,
-        trackId = this.trackId,
         tracks = this.tracks;
 
     if (!media) {
@@ -19182,19 +19180,9 @@ function (_EventHandler) {
     }
 
     var textTracks = filterUsedSubtitleTracks(tracks, media.textTracks);
-
-    if (newId === -1) {
-      [].slice.call(textTracks).forEach(function (track) {
-        track.mode = 'disabled';
-      });
-    } else {
-      var oldTrack = textTracks[trackId];
-
-      if (oldTrack) {
-        oldTrack.mode = 'disabled';
-      }
-    }
-
+    [].slice.call(textTracks).forEach(function (track) {
+      track.mode = 'disabled';
+    });
     var nextTrack = textTracks[newId];
 
     if (nextTrack) {

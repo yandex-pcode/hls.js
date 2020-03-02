@@ -53,7 +53,7 @@ class SubtitleTrackController extends EventHandler {
       return;
     }
 
-    if (Number.isFinite(this.queuedDefaultTrack >= 0)) {
+    if (this.queuedDefaultTrack >= 0) {
       this.subtitleTrack = this.queuedDefaultTrack;
       this.queuedDefaultTrack = null;
     }
@@ -192,22 +192,15 @@ class SubtitleTrackController extends EventHandler {
    * @private
    */
   _toggleTrackModes (newId) {
-    const { media, subtitleDisplay, trackId, tracks } = this;
+    const { media, subtitleDisplay, tracks } = this;
     if (!media) {
       return;
     }
 
     const textTracks = filterUsedSubtitleTracks(tracks, media.textTracks);
-    if (newId === -1) {
-      [].slice.call(textTracks).forEach(track => {
-        track.mode = 'disabled';
-      });
-    } else {
-      const oldTrack = textTracks[trackId];
-      if (oldTrack) {
-        oldTrack.mode = 'disabled';
-      }
-    }
+    [].slice.call(textTracks).forEach(track => {
+      track.mode = 'disabled';
+    });
 
     const nextTrack = textTracks[newId];
     if (nextTrack) {
