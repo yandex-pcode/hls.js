@@ -1332,13 +1332,22 @@ class StreamController extends BaseStreamController {
   _seekToStartPos () {
     const { media } = this;
     const currentTime = media.currentTime;
+    let startPosition = this.startPosition;
     // only adjust currentTime if different from startPosition or if startPosition not buffered
     // at that stage, there should be only one buffered range, as we reach that code after first fragment has been buffered
-    const startPosition = media.seeking ? currentTime : this.startPosition;
-    // if currentTime not matching with expected startPosition or startPosition not buffered but close to first buffered
-    if (currentTime !== startPosition) {
-      // if startPosition not buffered, let's seek to buffered.start(0)
-      logger.log(`target start position not buffered, seek to buffered.start(0) ${startPosition} from current time ${currentTime} `);
+    if (startPosition >= 0) {
+      if (media.seeking) {
+        logger.log(`could not seek to ${startPosition}, already seeking at ${currentTime}`);
+        return;
+      }
+      const bufferStart = media.buffered.length ? media.buffered.start(0) : 0;
+      const delta = bufferStart - startPosition;
+      if (delta > 0 && delta < this.config.maxBufferHole) {
+        logger.log(`adjusting start position by ${delta} to match buffer start`);
+        startPosition += delta;
+        this.startPosition = startPosition;
+      }
+      logger.log(`seek to target start position ${startPosition} from current time ${currentTime}. ready state ${media.readyState}`);
       media.currentTime = startPosition;
     }
   }
